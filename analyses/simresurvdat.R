@@ -27,6 +27,7 @@ plotd2<-full_join(plotd,dens)
 #start by assuming that post density depends only on pre-density and age
 dens.b<-1#effect of pre-density on post-density
 age.b<- -.5#older stands have lower post-density
+sigma<-10
 #want to add in treatment effect and account for variation by location as well at some point...
 #trt.eff<- -.5#trt.eff should be numeric- like an amount of wood removed. should get this from Kyle-
 
@@ -34,7 +35,7 @@ age.b<- -.5#older stands have lower post-density
 betas<-c(dens.b,age.b)
 x<-subset(plotd2, select=c(predens, AGE_BH_2006))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
           
-ypred<- as.matrix(x)%*%betas + rnorm(nrow(x),0,10)
+ypred<- as.matrix(x)%*%betas + rnorm(nrow(x),0,sigma)
 plot(x$predens,y)
 alldatmod<-lm(ypred~x$predens+x$AGE_BH_2006)
 coef(alldatmod)
@@ -53,7 +54,7 @@ for(i in 1:length(ns)){
 allns<-as.data.frame(allns)
 colnames(allns)<-c("n","int","predens.b","AGE.b","int.lc","int.uc","predens.b.lc","predens.b.uc","AGE.b.lc","AGE.b.uc")
 
-pdf("analyses/figures/plotnums_var10.pdf",height=5,width=8)
+pdf(paste("analyses/figures/plotnums_var",sigma,".pdf",sep=""),height=5,width=8)
 par(mfrow=c(1,2))
 plot(allns$n,allns$predens.b,main="pre-density",ylim=c(0,2))
 for(i in 1:dim(allns)[1]){
