@@ -34,7 +34,7 @@ age.b<- -.5#older stands have lower post-density
 betas<-c(dens.b,age.b)
 x<-subset(plotd2, select=c(predens, AGE_BH_2006))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
           
-ypred<- as.matrix(x)%*%betas + rnorm(nrow(x),0,1)
+ypred<- as.matrix(x)%*%betas + rnorm(nrow(x),0,10)
 plot(x$predens,y)
 alldatmod<-lm(ypred~x$predens+x$AGE_BH_2006)
 coef(alldatmod)
@@ -53,7 +53,7 @@ for(i in 1:length(ns)){
 allns<-as.data.frame(allns)
 colnames(allns)<-c("n","int","predens.b","AGE.b","int.lc","int.uc","predens.b.lc","predens.b.uc","AGE.b.lc","AGE.b.uc")
 
-windows(height=5,width=8)
+pdf("analyses/figures/plotnums_var10.pdf",height=5,width=8)
 par(mfrow=c(1,2))
 plot(allns$n,allns$predens.b,main="pre-density",ylim=c(0,2))
 for(i in 1:dim(allns)[1]){
@@ -65,3 +65,4 @@ for(i in 1:dim(allns)[1]){
   arrows(allns$n[i],allns$AGE.b.lc[i],allns$n[i],allns$AGE.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
 abline(h=age.b, lwd=2, col="red")
+dev.off()
