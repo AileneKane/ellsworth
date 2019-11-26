@@ -75,13 +75,30 @@ colors<-c("darkblue","lightgreen","goldenrod")
 symbs<-c(21,22,23)
 blocks<-unique(plotd2$BLOCK)
 treats<-unique(plotd2$TRT)
-windows()
+pdf(paste("analyses/figures/pretrt_agevsdens.pdf",sep=""),height=6,width=6)
+
+#windows()
 plot(plotd2$AGE_BH_2006,plotd2$predens, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Density, 2006 (trees/plot)")
 legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+dev.off()
 
+pdf(paste("analyses/figures/pretrt_agevsdbh.pdf",sep=""),height=6,width=6)
+#windows()
 plot(plotd2$AGE_BH_2006,plotd2$dbh.mn, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Mean DBH")
 legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+dev.off()
 
+pdf(paste("analyses/figures/pretrt_agevsht.pdf",sep=""),height=6,width=6)
+#windows()
+plot(plotd2$AGE_BH_2006,plotd2$HT, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Mean DBH")
+legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+dev.off()
+
+pdf(paste("analyses/figures/pretrt_agevscrown.pdf",sep=""),height=6,width=6)
+#windows()
+plot(plotd2$AGE_BH_2006,plotd2$CROWN, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Mean DBH")
+legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+dev.off()
 
 #set expected effect sizes
 #start by assuming that post density depends only on pre-density and age

@@ -21,13 +21,14 @@ trtd<-read.csv("data/Ellsworth_stands_treatment_data.csv", header=TRUE)
 source("analyses/source/prep_data.R")
 
 #3. fit models of pre-treatment data to get estimates of block-level and plot-level varianace
+source("analyses/source/run_premods.R")
 
 #4. set expected effect sizes for simulating data
 dens.b = 1#effect of pre-density 
 age.b = -.5#age effect (older stands have lower post-density?)
 trt.b = -1 #trt is amount removed (0,3 x predens)
-sigma.bl = 1#change to estimated block-level sigma from 2006 data
-sigma = .01#change to estimated sigma from 2006 data using print(VarCorr(study),comp="Variance")
+sigma.bl = 1#change to estimated block-level sigma from 2006 data print(VarCorr(study),comp="Variance")
+sigma = .5#change to estimated sigma from 2006 data using
 b0 = 0 # change to something else?
 
 #use the effect sizes and predictors plus error to generate the y variable
@@ -52,14 +53,13 @@ lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block), data=x )
 
 #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
 fulldat<-cbind(ypred,x)
-nplots<-rep(c(5,10,15,20,25), times=10)
-
+nplots<-rep(c(5,10,15,20,25,40,50), times=10)
 allplots<-c()
 for(i in 1:length(nplots)){
   subsdatc<-sample_n(fulldat[fulldat$block=="C",], nplots[i])
   subsdatn<-sample_n(fulldat[fulldat$block=="N",], nplots[i])
   subsdats<-sample_n(fulldat[fulldat$block=="S",], nplots[i])
-  subsdat<-sbind(subsdatc,subsdatn,subsdats)
+  subsdat<-rbind(subsdatc,subsdatn,subsdats)
   fit<-lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block), data=subsdat)
   fit.sum<-c(nplots[i],fixef(fit),confint(fit)[3,],confint(fit)[4,],confint(fit)[5,],confint(fit)[6,])
   allplots<-rbind(allplots,fit.sum)
@@ -68,7 +68,8 @@ allplots<-as.data.frame(allplots)
 colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
 
 pdf(paste("analyses/figures/plotnums_var",sigma,".pdf",sep=""),height=5,width=8)
-quartz()
+#quartz()
+windows()
 par(mfrow=c(1,3))
 plot(allplots$n,allplots$predens.b,main="pre-density",ylim=c(0,2))
 for(i in 1:dim(allplots)[1]){
