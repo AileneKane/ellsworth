@@ -2,12 +2,24 @@
 #Started November 8, 2019 by ailene ettinger
 #ailene.ettinger@tnc.org
 # housekeeping
+#tree size (dbh, height)
+# vertical structure: crown class (4,5,6 might be a good measure of this)
+# CWD- abundance
+#could choose an understory indicator speices or two- like rattle species
+#assume that THIN removed 30% of trees, no change in control and road; 
+#for response variable look at dbh, height, and densitiy (if time look at vertical structure)
+
+#do this by the tuesday before thanksgiving
+
+#for next time look at age, density, 
 rm(list=ls()) 
 options(stringsAsFactors = FALSE)
 
 # libraries
 library(dplyr)
-
+library(RColorBrewer)
+library(scales)
+library(lme4)
 #set working directory
 setwd("~/GitHub/ellsworth")
 
@@ -16,12 +28,60 @@ treed<-read.csv("data/LIVETREES_CLEAN_04282008.csv", header=TRUE)
 treed<-treed[,1:21]
 plotd<-read.csv("data/PLOT_CLEAN_11062008.csv", header=TRUE)
 
+treed2$CROWN<-as.numeric(treed2$CROWN)
+plotd2$TRT<-as.factor(plotd2$TRT)
+plotd2$BLOCK<-as.factor(plotd2$BLOCK)
+plotd2$predens<-as.numeric(plotd2$predens)
+treed2$HT<-as.numeric(treed2$HT)
+treed2$DBH<-as.numeric(treed2$DBH)
+treed2$CROWN<-as.numeric(treed2$CROWN)
+
 #Summarize number of trees in each plot to get pre-treatment tree density
 dens<-aggregate(treed$TAG,by=list(treed$SITE_ID,treed$BASIN,treed$PLOT),length)
 colnames(dens)<-c("SITE_ID","BASIN","PLOT","predens")
 
+dbh.mn<-aggregate(treed$DBH,by=list(treed$SITE_ID,treed$BASIN,treed$PLOT),mean, na.rm=TRUE)
+colnames(dbh.mn)<-c("SITE_ID","BASIN","PLOT","dbh.mn")
+
+ht.mn<-aggregate(treed$HT,by=list(treed$SITE_ID,treed$BASIN,treed$PLOT),mean, na.rm=TRUE)
+colnames(ht.mn)<-c("SITE_ID","BASIN","PLOT","dbh.mn")
+crown.mn<-aggregate(treed$CROWN,by=list(treed$SITE_ID,treed$BASIN,treed$PLOT),mean, na.rm=TRUE)
+colnames(crown.mn)<-c("SITE_ID","BASIN","PLOT","crown.mn")
+
 #merge density with other plot data
-plotd2<-full_join(plotd,dens)
+plotd2<-full_join(plotd,dens)#plot-level data
+plotd2<-full_join(plotd2,dbh.mn)#plot-level data
+plotd2<-left_join(plotd2,ht.mn)#plot-level data
+plotd2<-full_join(plotd2,crown.mn)#plot-level data
+
+treed2<-left_join(treed,plotd2)#individal tree data
+dim(treed2)
+
+#first just see how much variation there is by basin and treatment
+densmod<-lmer(predens~AGE_BH_2006 + (1|BLOCK), data=plotd2)
+densvar<-##how do i extraxt block level variance? want this for my data simulations!
+htmod<-lmer(HT~ AGE_BH_2006+(1|BLOCK), data=treed2)
+
+dbhmod<-lmer(DBH~ AGE_BH_2006+(1|BLOCK), data=treed2)
+crownmod<-lmer(CROWN~ AGE_BH_2006+(1|BLOCK), data=treed2)
+
+summary(densmod)#positive effect of age on density, before treatment, there is much higher variance by block than by TRT!
+summary(htmod)#positive effect of age on ht, higher variance by TRT...
+summary(dbhmod)#positive effect of age on dbh, similar variance by TRT and Block
+summary(crownmod)#positive effect of age on crown, lsightly higher variance in TRt than block
+#
+
+colors<-c("darkblue","lightgreen","goldenrod")
+symbs<-c(21,22,23)
+blocks<-unique(plotd2$BLOCK)
+treats<-unique(plotd2$TRT)
+windows()
+plot(plotd2$AGE_BH_2006,plotd2$predens, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Density, 2006 (trees/plot)")
+legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+
+plot(plotd2$AGE_BH_2006,plotd2$dbh.mn, pch=symbs[as.numeric(as.factor(plotd2$TRT))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Mean DBH")
+legend("topright", legend=c("C","N","S","THIN","CON","ROAD"),pch=c(21,21,21,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen") )
+
 
 #set expected effect sizes
 #start by assuming that post density depends only on pre-density and age
@@ -36,7 +96,8 @@ betas<-c(dens.b,age.b)
 x<-subset(plotd2, select=c(predens, AGE_BH_2006))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
           
 ypred<- as.matrix(x)%*%betas + rnorm(nrow(x),0,sigma)
-plot(x$predens,y)
+plot(x$predens,ypred)
+
 alldatmod<-lm(ypred~x$predens+x$AGE_BH_2006)
 coef(alldatmod)
 
@@ -55,6 +116,7 @@ allns<-as.data.frame(allns)
 colnames(allns)<-c("n","int","predens.b","AGE.b","int.lc","int.uc","predens.b.lc","predens.b.uc","AGE.b.lc","AGE.b.uc")
 
 pdf(paste("analyses/figures/plotnums_var",sigma,".pdf",sep=""),height=5,width=8)
+#windows()
 par(mfrow=c(1,2))
 plot(allns$n,allns$predens.b,main="pre-density",ylim=c(0,2))
 for(i in 1:dim(allns)[1]){
@@ -67,3 +129,5 @@ for(i in 1:dim(allns)[1]){
 }
 abline(h=age.b, lwd=2, col="red")
 dev.off()
+
+
