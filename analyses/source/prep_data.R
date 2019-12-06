@@ -23,7 +23,7 @@ plotd2<-full_join(plotd2,dbh.mn)#plot-level data
 plotd2<-left_join(plotd2,ht.mn)#plot-level data
 plotd2<-full_join(plotd2,crown.mn)#plot-level data
 
-treed2<-left_join(treed,plotd2)#individal tree data
+treed2<-left_join(treed,plotd2, by=c("BASIN","PLOT"))#individal tree data
 #merge treatment data with other plot data
 colnames(trtd)<-c("BASIN","STAND_ID", "STAND_TYPE","TREATED","COM.THIN","PCT","YR_TREATED","AGE_2019")
 plotd3<-left_join(plotd2,trtd)
@@ -42,8 +42,6 @@ treed2$HT<-as.numeric(treed2$HT)
 treed2$DBH<-as.numeric(treed2$DBH)
 treed2$CROWN<-as.numeric(treed2$CROWN)
 
-
-
 #standardize predictors
 plotd2$predens.z<-(plotd2$predens-mean(plotd2$predens))/sd(plotd2$predens)
 plotd2$age2006.z<-(plotd2$AGE_BH_2006-mean(plotd2$AGE_BH_2006, na.rm=TRUE))/sd(plotd2$AGE_BH_2006, na.rm=TRUE)
@@ -53,10 +51,10 @@ plotd2$ht.z<-(plotd2$ht.mn-mean(plotd2$ht.mn))/sd(plotd2$ht.mn)
 treed2$dbh.z<-(treed2$dbh.mn-mean(treed2$dbh.mn))/sd(treed2$dbh.mn)
 treed2$ht.z<-(treed2$ht.mn-mean(plotd2$ht.mn))/sd(treed2$ht.mn)
 
-
 #set up data:
 x<-subset(plotd2, select=c(BLOCK,predens.z, age2006.z, trt.z))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
 colnames(x)[1]<-c("block")         
 
 #remove NAs
 x<-x[-which(is.na(x$age2006.z)),]
+

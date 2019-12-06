@@ -1,5 +1,5 @@
 #first just see how much variation there is by basin and treatment
-densmod<-lmer(predens~age2006.z + (1|BLOCK), data=plotd2)
+densmod<-lmer(predens~age2006.z + (1|BLOCK)  + (1|STAND.TYPE), data=plotd2)
 summary(densmod)
 densd<-VarCorr(densmod,comp="Variance")[1]
 

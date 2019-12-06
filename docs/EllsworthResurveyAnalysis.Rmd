@@ -1,0 +1,124 @@
+---
+title: "Ellsworth Resurvey Data Analysis"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goals and Approach
+
+The primary goal of these preliminary analyses is to figure out how many plots should be resurveyed at Ellsowrth in summe, echo=TRUE, results="hide"r 2020. To do this, we used the pre-treatment survey data from 2006/2007 to quantify variance in density, height, and DBH of plots by  block and stand type. 
+
+## Summary 
+
+## Data Files
+We used the following datafiles, which can be in the Ellsworth GitHub repo (https://github.com/AileneKane/ellsworth) as well as in the "Ellsworth Science and Monitoring" shared folder on Box.
+
+LIVETREES_CLEAN_04282008.csv
+
+PLOT_CLEAN_11062008.csv
+
+Ellsworth_stands_treatment_data.csv
+
+## Analysis of pre-treatment survey data
+
+We load the above files and packages, and then put them together into a dataframe for analysis
+```{r getdata, include = FALSE}
+rm(list=ls()) 
+options(stringsAsFactors = FALSE)
+
+# libraries
+library(dplyr)
+library(lme4)
+library(scales)
+#set working directory
+setwd("~/GitHub/ellsworth")
+
+#1. read in tree dat, plot data, and treatment data
+treed<-read.csv("data/LIVETREES_CLEAN_04282008.csv", header=TRUE)
+plotd<-read.csv("data/PLOT_CLEAN_11062008.csv", header=TRUE)
+trtd<-read.csv("data/Ellsworth_stands_treatment_data.csv", header=TRUE)
+#2. put the data together and standardize some columns for model fitting
+source("analyses/source/prep_data.R")
+
+
+```
+There is some structure to the data, that may be important to account for in looking at treatment effects, and therefore should be kept in mind in resurveys: 
+-Blocks (N,C,S), which are different geographical regions at Ellsworth
+-Standtype, which are different forest types at Ellsworth.
+Here is a breakdown of the number of plots in each standtype by region:
+
+```{r showdata, include = TRUE, echo = TRUE}
+ table(plotd2$STAND.TYP,plotd2$BLOCK)
+
+```
+
+Now lets look at effects of age on density, height, dbh, and crown, and quantify variation by region and stand-type using multilevel models.
+
+## Density
+
+```{r densmod, include = TRUE, echo = TRUE}
+plotd2$stand.code<-substr(plotd2$STAND.TYPE,1,2)
+colors<-c("darkblue","lightgreen","goldenrod")
+symbs<-c(21,22,23,24)
+blocks<-as.character(unique(plotd2$BLOCK))
+treats<-unique(plotd2$TRT)
+sttypes<-sort(unique(plotd2$stand.code))
+
+plot(plotd2$AGE_BH_2006,plotd2$predens, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Density, 2006 (trees/plot)", main="density vs. age, by block and stand-type")
+
+legend("topright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen","lightgreen") )
+
+densmod<-lmer(predens~AGE_BH_2006 + (1|BLOCK)  + (1|STAND.TYPE), data=plotd2)
+den.standsd<-VarCorr(densmod,comp="Variance")[1]
+den.blocksd<-VarCorr(densmod,comp="Variance")[2]
+summary(densmod)#
+```
+There is a weak negative effect of age on density,  after accounting for variation in density and blocks. There is much higher variance in density by stand type than by block.
+
+## DBH
+```{r dbh, include = TRUE, echo = TRUE}
+
+plot(plotd2$AGE_BH_2006,plotd2$dbh.mn, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "Mean DBH, 2006", main="DBH vs. age, by block and stand-type")
+
+legend("bottomright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen","lightgreen") )
+dbhmod<-lmer(DBH~ AGE_BH_2006+(1|BLOCK) + (1|STAND.TYPE), data=treed2)
+dbh.standsd<-VarCorr(dbhmod,comp="Variance")[1]
+dbh.blocksd<-VarCorr(dbhmod,comp="Variance")[2]
+summary(dbhmod)#positive effect of age on dbh, similar variance by TRT and Block
+```
+There is a positive effect of age on dbh,  after accounting for variation in density and blocks. There is much higher variance in dbh by stand type than by block.
+
+## Height
+```{r height, include = TRUE, echo = TRUE}
+
+
+plot(plotd2$AGE_BH_2006,plotd2$ht.mn, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "MEAN HEIGHT, 2006", main="HEIGHT vs. age, by block and stand-type")
+
+legend("bottomright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen","lightgreen") )
+htmod<-lmer(HT~ AGE_BH_2006+(1|BLOCK) + (1|STAND.TYPE), data=treed2)
+summary(htmod)#positive effect of age on ht, higher variance by TRT...
+ht.standsd<-VarCorr(htmod,comp="Variance")[1]
+ht.blocksd<-VarCorr(htmod,comp="Variance")[2]
+```
+There is a positive effect of age on height,  after accounting for variation in density and blocks. There is much higher variance in height by stand type than by block.
+## Crown
+
+```{r crownmod, include = TRUE, echo = TRUE}
+plot(plotd2$AGE_BH_2006,plotd2$crown.mn, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "MEAN CROWN, 2006", main="CROWN vs. age, by block and stand-type")
+
+legend("bottomright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen","lightgreen"))
+
+crownmod<-lmer(CROWN~ AGE_BH_2006+(1|BLOCK) + (1|STAND.TYPE), data=treed2)
+
+summary(crownmod)#positive effect of age on crown, lsightly higher variance in TRt than block
+crown.standsd<-VarCorr(crownmod,comp="Variance")[1]
+crown.blocksd<-VarCorr(crownmod,comp="Variance")[2]
+
+```
+There is a positive effect of age on crown,  after accounting for variation in density and blocks. There is much higher variance in crown by stand type than by block.
+
+
+## How many plots do we need to capture treatment effects, amidst all the variation?
