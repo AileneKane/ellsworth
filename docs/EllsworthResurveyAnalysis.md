@@ -9,6 +9,8 @@ results=“hide”r 2020. To do this, we used the pre-treatment survey
 data from 2006/2007 to quantify variance in density, height, and DBH of
 plots by block and stand type.
 
+## Summary
+
 ## Data Files
 
 We used the following datafiles, which can be in the Ellsworth GitHub
@@ -55,7 +57,6 @@ quantify variation by region and stand-type using multilevel models.
 ## Density
 
 ``` r
-plotd2$stand.code<-substr(plotd2$STAND.TYPE,1,2)
 colors<-c("darkblue","lightgreen","goldenrod")
 symbs<-c(21,22,23,24)
 blocks<-as.character(unique(plotd2$BLOCK))
@@ -71,8 +72,11 @@ legend("topright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors
 
 ``` r
 densmod<-lmer(predens~AGE_BH_2006 + (1|BLOCK)  + (1|STAND.TYPE), data=plotd2)
+
 den.standsd<-VarCorr(densmod,comp="Variance")[1]
 den.blocksd<-VarCorr(densmod,comp="Variance")[2]
+Bage.dens<-fixef(densmod)[2]
+int.dens<-fixef(densmod)[1]
 summary(densmod)#
 ```
 
@@ -149,8 +153,8 @@ summary(dbhmod)#positive effect of age on dbh, similar variance by TRT and Block
     ##             (Intr)
     ## AGE_BH_2006 -0.302
 
-There is a positive age on dbh, after accounting for variation in
-density and blocks. There is much higher variance in density by stand
+There is a positive effect of age on dbh, after accounting for variation
+in density and blocks. There is much higher variance in dbh by stand
 type than by block.
 
 ## Height
@@ -199,12 +203,12 @@ ht.standsd<-VarCorr(htmod,comp="Variance")[1]
 ht.blocksd<-VarCorr(htmod,comp="Variance")[2]
 ```
 
-There is a positive age on height, after accounting for variation in
-density and blocks. There is much higher variance in height by stand
-type than by block. \#\# Crown
+There is a positive effect of age on height, after accounting for
+variation in density and blocks. There is much higher variance in height
+by stand type than by block. \#\# Crown
 
 ``` r
-plot(plotd2$AGE_BH_2006,plotd2$crown.mn, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "MEAN CROWN, 2006", main="HEIGHT vs. age, by block and stand-type")
+plot(plotd2$AGE_BH_2006,plotd2$crown.mn, pch=symbs[as.numeric(as.factor(plotd2$stand.code))], bg=colors[as.numeric(as.factor(plotd2$BLOCK))], xlab="Age, 2006 (years)", ylab= "MEAN CROWN, 2006", main="CROWN vs. age, by block and stand-type")
 
 legend("bottomright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors,"lightgreen","lightgreen","lightgreen","lightgreen"))
 ```
@@ -248,6 +252,487 @@ crown.standsd<-VarCorr(crownmod,comp="Variance")[1]
 crown.blocksd<-VarCorr(crownmod,comp="Variance")[2]
 ```
 
-There is a positive age on crown, after accounting for variation in
-density and blocks. There is much higher variance in crown by stand type
-than by block.
+There is a positive effect of age on crown, after accounting for
+variation in density and blocks. There is much higher variance in crown
+by stand type than by block.
+
+## How many plots do we need to capture treatment effects, amidst all the variation?
+
+To figure out how many plots need to be resampled to capture the
+treatment effects, amidst all the variation among blocks and standtypes,
+we simulated a dataset of resampled data. To do this, we set expected
+effect sizes of treatment
+
+``` r
+#4. set expected effect sizes for simulating data
+dens.b = 1#effect of pre-density 
+age.b = Bage.dens#age effect (older stands have lower post-density? use coef from density model above)
+trt.b = -1 #trt is amount removed (0,3 x predens)
+sigma.bl =6.055#estimated block-level sigma from 2006 data 
+sigma.st =22.37#estimated stand-type sigma from 2006 data 
+
+sigma = .1#
+b0 = int.dens# from model above
+
+#use the effect sizes and predictors plus error to generate the y variable
+
+block = x$block
+nblock = length(unique(x$block))
+nplot = 72
+
+nstand = 3
+blockeff = rep(rnorm(nblock, 0, sigma.bl), each = nplot)
+standeff = rep(rnorm(nstand, 0, sigma.st), each = nplot)
+ploteff = rnorm(nblock*nplot, 0, sigma)
+
+ypred = b0 + dens.b*x$predens.z + age.b*x$age2006.z + trt.b*x$trt.z+ blockeff+ standeff + ploteff
+
+#lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block)+ (1|stand.code), data=x )
+
+
+#now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
+fulldat<-cbind(ypred,x)
+nplots<-rep(c(5,10,15,20,25,30,35,40,45), times=10)
+allplots<-c()
+for(i in 1:length(nplots)){
+  subsdatc<-sample_n(fulldat[fulldat$block=="C",], nplots[i])
+  subsdatn<-sample_n(fulldat[fulldat$block=="N",], nplots[i])
+  subsdats<-sample_n(fulldat[fulldat$block=="S",], nplots[i])
+  subsdat<-rbind(subsdatc,subsdatn,subsdats)
+  fit<-lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block)+ (1|stand.code),data=subsdat)
+  cis<-confint(fit)
+  fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,])
+  allplots<-rbind(allplots,fit.sum)
+}
+```
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+    
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+
+    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
+    ## monotonic profile for (Intercept)
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
+    ## (Intercept): falling back to linear interpolation
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00487029 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.36424e-12)
+    ## detected
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-5.57066e-12)
+    ## detected
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-7.27596e-12)
+    ## detected
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-7.27596e-12)
+    ## detected
+
+    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
+    ## for .sig02: falling back to linear interpolation
+
+    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
+    ## 'x' values
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00251254 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00309077 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
+    ## for .sig02: falling back to linear interpolation
+
+    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
+    ## 'x' values
+
+    ## boundary (singular) fit: see ?isSingular
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
+    ## for .sig02: falling back to linear interpolation
+
+    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
+    ## 'x' values
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00738056 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.81899e-12)
+    ## detected
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
+    ## identical or NA .zeta values: using minstep
+
+    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.93268e-12)
+    ## detected
+
+    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
+    ## for .sig02: falling back to linear interpolation
+
+    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
+    ## 'x' values
+
+    ## boundary (singular) fit: see ?isSingular
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00268727 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00815029 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+
+    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
+    ## monotonic profile for (Intercept)
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
+    ## (Intercept): falling back to linear interpolation
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.00575558 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
+    ## profile: using minstep
+
+    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
+    ## monotonic profile for (Intercept)
+
+    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
+    ## (Intercept): falling back to linear interpolation
+
+    ## boundary (singular) fit: see ?isSingular
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.052424 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge with max|grad| = 0.0140444 (tol = 0.002, component 1)
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## boundary (singular) fit: see ?isSingular
+
+    ## Computing profile confidence intervals ...
+
+``` r
+allplots<-as.data.frame(allplots)
+colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+
+
+par(mfrow=c(1,3))
+plot(allplots$n,allplots$predens.b,main="pre-density",ylim=c(0,7))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle= 90, lwd=3,col= alpha("gray",0.1))
+}
+abline(h=dens.b, lwd=2, col="red")
+plot(allplots$n,allplots$age.b,main="age",ylim=c(-1,0))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+}
+abline(h=age.b, lwd=2, col="red")
+plot(allplots$n,allplots$trt.b,main="trt",ylim=c(-1.5,0))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+}
+abline(h=trt.b, lwd=2, col="red")
+```
+
+![](EllsworthResurveyAnalysis_files/figure-gfm/simdat-1.png)<!-- -->

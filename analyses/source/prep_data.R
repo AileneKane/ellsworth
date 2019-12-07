@@ -50,9 +50,10 @@ plotd2$dbh.z<-(plotd2$dbh.mn-mean(plotd2$dbh.mn))/sd(plotd2$dbh.mn)
 plotd2$ht.z<-(plotd2$ht.mn-mean(plotd2$ht.mn))/sd(plotd2$ht.mn)
 treed2$dbh.z<-(treed2$dbh.mn-mean(treed2$dbh.mn))/sd(treed2$dbh.mn)
 treed2$ht.z<-(treed2$ht.mn-mean(plotd2$ht.mn))/sd(treed2$ht.mn)
+plotd2$stand.code<-substr(plotd2$STAND.TYPE,1,2)
 
 #set up data:
-x<-subset(plotd2, select=c(BLOCK,predens.z, age2006.z, trt.z))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
+x<-subset(plotd2, select=c(BLOCK,predens.z, age2006.z, trt.z,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
 colnames(x)[1]<-c("block")         
 
 #remove NAs
