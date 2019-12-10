@@ -4,18 +4,17 @@ Ellsworth Resurvey Data Analysis
 ## Goals and Approach
 
 The primary goal of these preliminary analyses is to figure out how many
-plots should be resurveyed at Ellsowrth in summe, echo=TRUE,
-results=“hide”r 2020. To do this, we used the pre-treatment survey
-data from 2006/2007 to quantify variance in density, height, and DBH of
-plots by block and stand type.
+plots should be resurveyed at Ellsowrth in summer 2020. To do this, we
+used the pre-treatment survey data from 2006/2007 to quantify variance
+in density, height, and DBH of plots by block and stand type.
 
 ## Summary
 
 ## Data Files
 
-We used the following datafiles, which can be in the Ellsworth GitHub
-repo (<https://github.com/AileneKane/ellsworth>) as well as in the
-“Ellsworth Science and Monitoring” shared folder on Box.
+We used the following datafiles, which can be found in the Ellsworth
+GitHub repo (<https://github.com/AileneKane/ellsworth>) as well as in
+the “Ellsworth Science and Monitoring” shared folder on Box.
 
 LIVETREES\_CLEAN\_04282008.csv
 
@@ -32,8 +31,9 @@ There is some structure to the data, that may be important to account
 for in looking at treatment effects, and therefore should be kept in
 mind in resurveys: -Blocks (N,C,S), which are different geographical
 regions at Ellsworth -Standtype, which are different forest types at
-Ellsworth. Here is a breakdown of the number of plots in each standtype
-by region:
+Ellsworth. -Note: There are 5 plots in which standtype is blank- what
+are these? we will ignore them for now\! Here is a breakdown of the
+number of plots in each standtype by region and by:
 
 ``` r
  table(plotd2$STAND.TYP,plotd2$BLOCK)
@@ -50,6 +50,22 @@ by region:
     ##   WH/SS/RC-3 33  3 18
     ##   WH/SS/RC-4  0 25  0
     ##   WH/SS/RC-5  3  0  0
+
+``` r
+ table(plotd2$STAND.TYP,plotd2$TRT)
+```
+
+    ##             
+    ##              CON ROAD THIN
+    ##                2    0    3
+    ##   DF-1        16    0   11
+    ##   DF-2        23   12   16
+    ##   RA-3         1    3    1
+    ##   WH/SS/RC-1   1   10    5
+    ##   WH/SS/RC-2  22    7    9
+    ##   WH/SS/RC-3   7   21   26
+    ##   WH/SS/RC-4  12    0   13
+    ##   WH/SS/RC-5   0    3    0
 
 Now lets look at effects of age on density, height, dbh, and crown, and
 quantify variation by region and stand-type using multilevel models.
@@ -72,7 +88,6 @@ legend("topright", legend=c(blocks,sttypes),pch=c(22,22,22,symbs),pt.bg=c(colors
 
 ``` r
 densmod<-lmer(predens~AGE_BH_2006 + (1|BLOCK)  + (1|STAND.TYPE), data=plotd2)
-
 den.standsd<-VarCorr(densmod,comp="Variance")[1]
 den.blocksd<-VarCorr(densmod,comp="Variance")[2]
 Bage.dens<-fixef(densmod)[2]
@@ -263,351 +278,80 @@ treatment effects, amidst all the variation among blocks and standtypes,
 we simulated a dataset of resampled data. To do this, we set expected
 effect sizes of treatment
 
+1.  RESPONSE VARIABLE = DENSITY First, for WH stand types. In the plots,
+    the x axis is the number of plots per treatment
+
+<!-- end list -->
+
 ``` r
 #4. set expected effect sizes for simulating data
-dens.b = 1#effect of pre-density 
-age.b = Bage.dens#age effect (older stands have lower post-density? use coef from density model above)
-trt.b = -1 #trt is amount removed (0,3 x predens)
-sigma.bl =6.055#estimated block-level sigma from 2006 data 
-sigma.st =22.37#estimated stand-type sigma from 2006 data 
+#fit model for data of choice (i.e., one stand type
+dat<-xwh
+mod<-lmer(predens~ AGE_BH_2006+(1|BLOCK) , data=dat)
 
+Bage<-fixef(mod)[2]
+int<-fixef(mod)[1]
+dens.b = 1#effect of pre-density 
+age.b = Bage#age effect (older stands have lower post-density? use coef from density model above)
+trt.b = -1 #trt is amount removed (0,3 x predens)
+sigma.bl =attributes(VarCorr(mod)$BLOCK)$stddev#estimated block-level sigma from 2006 data 
 sigma = .1#
-b0 = int.dens# from model above
+b0 = int# from model above
 
 #use the effect sizes and predictors plus error to generate the y variable
+#set up data:
+x<-subset(dat, select=c(BLOCK,predens, AGE_BH_2006, trt,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
+colnames(x)[1]<-c("block")         
+#remove NAs
+#x<-x[-which(is.na(x$AGE_BH_2006)),]
 
 block = x$block
 nblock = length(unique(x$block))
-nplot = 72
 
-nstand = 3
-blockeff = rep(rnorm(nblock, 0, sigma.bl), each = nplot)
-standeff = rep(rnorm(nstand, 0, sigma.st), each = nplot)
-ploteff = rnorm(nblock*nplot, 0, sigma)
+nplot = tapply(x$predens,list(x$block), length)
 
-ypred = b0 + dens.b*x$predens.z + age.b*x$age2006.z + trt.b*x$trt.z+ blockeff+ standeff + ploteff
+blockeff = c(rep(rnorm(1, 0, sigma.bl), times = nplot[1]),
+             rep(rnorm(1, 0, sigma.bl), times = nplot[2]),
+             rep(rnorm(1, 0, sigma.bl), times = nplot[3]))
+ploteff = rnorm(dim(x), 0, sigma)
 
-#lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block)+ (1|stand.code), data=x )
+x$predens<-as.numeric(x$predens)
+x$trt2<-x$trt*x$predens
 
+ypred = b0 + dens.b*x$predens + age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + ploteff
 
+lmer(ypred ~ predens+ AGE_BH_2006 + trt2+ (1|block), data=x)
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: ypred ~ predens + AGE_BH_2006 + trt2 + (1 | block)
+    ##    Data: x
+    ## REML criterion at convergence: -627.8427
+    ## Random effects:
+    ##  Groups   Name        Std.Dev.
+    ##  block    (Intercept) 6.99157 
+    ##  Residual             0.01666 
+    ## Number of obs: 134, groups:  block, 3
+    ## Fixed Effects:
+    ## (Intercept)      predens  AGE_BH_2006         trt2  
+    ##     55.9002       1.0000       0.3013      -1.0001
+
+``` r
 #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
 fulldat<-cbind(ypred,x)
-nplots<-rep(c(5,10,15,20,25,30,35,40,45), times=10)
+nplots<-rep(c(5,10,15,20,30,40,50), times=10)
 allplots<-c()
 for(i in 1:length(nplots)){
-  subsdatc<-sample_n(fulldat[fulldat$block=="C",], nplots[i])
-  subsdatn<-sample_n(fulldat[fulldat$block=="N",], nplots[i])
-  subsdats<-sample_n(fulldat[fulldat$block=="S",], nplots[i])
-  subsdat<-rbind(subsdatc,subsdatn,subsdats)
-  fit<-lmer(ypred ~ predens.z + age2006.z + trt.z+ (1|block)+ (1|stand.code),data=subsdat)
+  subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,], nplots[i])
+  subsdatcont<-sample_n(fulldat[fulldat$trt==0,], nplots[i])
+  subsdat<-rbind(subsdattrt,subsdatcont)
+  fit<-lmer(ypred ~ predens + AGE_BH_2006  + trt2+ (1|block),data=subsdat)
   cis<-confint(fit)
   fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,])
   allplots<-rbind(allplots,fit.sum)
 }
 ```
 
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-    
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-
-    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
-    ## monotonic profile for (Intercept)
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
-    ## (Intercept): falling back to linear interpolation
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00487029 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.36424e-12)
-    ## detected
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-5.57066e-12)
-    ## detected
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-7.27596e-12)
-    ## detected
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-7.27596e-12)
-    ## detected
-
-    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
-    ## for .sig02: falling back to linear interpolation
-
-    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
-    ## 'x' values
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00251254 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00309077 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
-    ## for .sig02: falling back to linear interpolation
-
-    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
-    ## 'x' values
-
-    ## boundary (singular) fit: see ?isSingular
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
-    ## for .sig02: falling back to linear interpolation
-
-    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
-    ## 'x' values
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00738056 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.81899e-12)
-    ## detected
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): Last two rows have
-    ## identical or NA .zeta values: using minstep
-
-    ## Warning in zetafun(np, ns): slightly lower deviances (diff=-1.93268e-12)
-    ## detected
-
-    ## Warning in FUN(X[[i]], ...): non-monotonic profile for .sig02
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit
-    ## for .sig02: falling back to linear interpolation
-
-    ## Warning in regularize.values(x, y, ties, missing(ties)): collapsing to unique
-    ## 'x' values
-
-    ## boundary (singular) fit: see ?isSingular
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -620,95 +364,258 @@ for(i in 1:length(nplots)){
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00268727 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-
+    ## unable to evaluate scaled gradient
+    
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00815029 (tol = 0.002, component 1)
-
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-
-    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
-    ## monotonic profile for (Intercept)
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
-    ## (Intercept): falling back to linear interpolation
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.00575558 (tol = 0.002, component 1)
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
-    ## Computing profile confidence intervals ...
-
-    ## boundary (singular) fit: see ?isSingular
-
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-
-    ## Warning in nextpar(mat, cc, i, delta, lowcut, upcut): unexpected decrease in
-    ## profile: using minstep
-
-    ## Warning in profile.merMod(object, which = parm, signames = oldNames, ...): non-
-    ## monotonic profile for (Intercept)
-
-    ## Warning in confint.thpr(pp, level = level, zeta = zeta): bad spline fit for
-    ## (Intercept): falling back to linear interpolation
-
-    ## boundary (singular) fit: see ?isSingular
     ## Computing profile confidence intervals ...
 
-    ## boundary (singular) fit: see ?isSingular
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.052424 (tol = 0.002, component 1)
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge with max|grad| = 0.0140444 (tol = 0.002, component 1)
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
-    ## boundary (singular) fit: see ?isSingular
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
 
@@ -716,19 +623,18 @@ for(i in 1:length(nplots)){
 allplots<-as.data.frame(allplots)
 colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
 
-
 par(mfrow=c(1,3))
-plot(allplots$n,allplots$predens.b,main="pre-density",ylim=c(0,7))
+plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
 for(i in 1:dim(allplots)[1]){
-  arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle= 90, lwd=3,col= alpha("gray",0.1))
+  arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
 }
 abline(h=dens.b, lwd=2, col="red")
-plot(allplots$n,allplots$age.b,main="age",ylim=c(-1,0))
+plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
-abline(h=age.b, lwd=2, col="red")
-plot(allplots$n,allplots$trt.b,main="trt",ylim=c(-1.5,0))
+ abline(h=age.b, lwd=2, col="red")
+plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b))
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
@@ -736,3 +642,427 @@ abline(h=trt.b, lwd=2, col="red")
 ```
 
 ![](EllsworthResurveyAnalysis_files/figure-gfm/simdat-1.png)<!-- -->
+Next, for DF plots
+
+``` r
+#4. set expected effect sizes for simulating data
+#fit model for data of choice (i.e., one stand type
+dat<-xdf
+mod<-lmer(predens~ AGE_BH_2006+(1|BLOCK) , data=dat)
+
+Bage<-fixef(mod)[2]
+int<-fixef(mod)[1]
+dens.b = 1#effect of pre-density 
+age.b = Bage#age effect (older stands have lower post-density? use coef from density model above)
+trt.b = -1 #trt is amount removed (0,3 x predens)
+sigma.bl =attributes(VarCorr(mod)$BLOCK)$stddev#estimated block-level sigma from 2006 data 
+sigma = .1#
+b0 = int# from model above
+
+#use the effect sizes and predictors plus error to generate the y variable
+#set up data:
+x<-subset(dat, select=c(BLOCK,predens, AGE_BH_2006, trt,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
+colnames(x)[1]<-c("block")         
+#remove NAs
+#x<-x[-which(is.na(x$AGE_BH_2006)),]
+
+block = x$block
+nblock = length(unique(x$block))
+
+nplot = tapply(x$predens,list(x$block), length)
+
+blockeff = c(rep(rnorm(1, 0, sigma.bl), times = nplot[1]),
+             rep(rnorm(1, 0, sigma.bl), times = nplot[2]),
+             rep(rnorm(1, 0, sigma.bl), times = nplot[3]))
+ploteff = rnorm(dim(x), 0, sigma)
+
+x$predens<-as.numeric(x$predens)
+x$trt2<-x$trt*x$predens
+
+ypred = b0 + dens.b*x$predens + age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + ploteff
+
+#lmer(ypred ~ predens+ AGE_BH_2006 + trt2+ (1|block), data=x)
+
+
+#now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
+fulldat<-cbind(ypred,x)
+nplots<-rep(c(5,10,15,20,27), times=10)
+allplots<-c()
+for(i in 1:length(nplots)){
+  subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,], nplots[i])
+  subsdatcont<-sample_n(fulldat[fulldat$trt==0,], nplots[i])
+  subsdat<-rbind(subsdattrt,subsdatcont)
+  fit<-lmer(ypred ~ predens + AGE_BH_2006  + trt2+ (1|block),data=subsdat)
+  cis<-confint(fit)
+  fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,])
+  allplots<-rbind(allplots,fit.sum)
+}
+```
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+``` r
+allplots<-as.data.frame(allplots)
+colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+
+par(mfrow=c(1,3))
+plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
+}
+abline(h=dens.b, lwd=2, col="red")
+plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+}
+ abline(h=age.b, lwd=2, col="red")
+plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b))
+for(i in 1:dim(allplots)[1]){
+  arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+}
+abline(h=trt.b, lwd=2, col="red")
+```
+
+![](EllsworthResurveyAnalysis_files/figure-gfm/simdatdf-1.png)<!-- -->
+\# \# 2. RESPONSE VARIABLE = DBH \# First, for WH standtypes \# `{r
+simdatdbh, include = TRUE, echo = TRUE} # #4. set expected effect sizes
+for simulating data # #fit model for data of choice (i.e., one stand
+type # dat=xwh # mod<-lmer(dbh.mn~ AGE_BH_2006+(1|BLOCK) , data=dat) # #
+Bage<-fixef(mod)[2] # int<-fixef(mod)[1] # dbh.b = 1.1#effect of dbh #
+age.b = Bage#age effect (older stands have higher dbh? use coef from
+density model above) # trt.b = 1 #trt is amount removed (0,3 x predens)
+# sigma.bl =attributes(VarCorr(mod)$BLOCK)$stddev#estimated block-level
+sigma from 2006 data # sigma = .1# # b0 = int# from model above # # #use
+the effect sizes and predictors plus error to generate the y variable #
+#set up data: # x<-subset(dat, select=c(BLOCK,dbh.mn, AGE_BH_2006,
+trt,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some
+NAS # colnames(x)[1]<-c("block") # #remove NAs #
+#x<-x[-which(is.na(x$AGE_BH_2006)),] # # block = x$block # nblock =
+length(unique(x$block)) # # nplot = tapply(x$dbh.mn,list(x$block),
+length) # # blockeff = c(rep(rnorm(1, 0, sigma.bl), times = nplot[1]), #
+rep(rnorm(1, 0, sigma.bl), times = nplot[2]), # rep(rnorm(1, 0,
+sigma.bl), times = nplot[3])) # ploteff = rnorm(dim(x), 0, sigma) # #
+x$trt2<-x$trt*x$dbh.mn # # ypred = b0 + dbh.b*x$dbh.mn +
+age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + ploteff # # #lmer(ypred ~
+dbh.mn+ AGE_BH_2006 + trt2+ (1|block), data=x) # # # #now lets write a
+for loop that uses different sample sizes to figure out how many plots
+are needed to correctly recover the effects # fulldat<-cbind(ypred,x) #
+nplots<-rep(c(5,10,15,20,30,40,50), times=10) # allplots<-c() # for(i
+in 1:length(nplots)){ # subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,],
+nplots[i]) # subsdatcont<-sample_n(fulldat[fulldat$trt==0,], nplots[i])
+# subsdat<-rbind(subsdattrt,subsdatcont) # fit<-lmer(ypred ~ dbh.mn +
+AGE_BH_2006 + trt2+ (1|block),data=subsdat) # cis<-confint(fit) #
+fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,]) #
+allplots<-rbind(allplots,fit.sum) # } #
+allplots<-as.data.frame(allplots) #
+colnames(allplots)<-c("n","int","dbh.b","age.b","trt.b","int.lc","int.uc","dbh.b.lc","dbh.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+# # par(mfrow=c(1,3)) # plot(allplots$n,allplots$dbh.b,main="dbh",ylim=
+range(allplots$dbh.b)) # for(i in 1:dim(allplots)[1]){ #
+arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code
+= 0, angle=90, lwd=3,col= alpha("gray",0.1)) # } # abline(h=dbh.b,
+lwd=2, col="red") #
+plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b)) #
+for(i in 1:dim(allplots)[1]){ #
+arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code
+= 0, angle = 90, lwd=3,col= alpha("gray",0.1)) # } # abline(h=age.b,
+lwd=2, col="red") #
+plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b)) #
+for(i in 1:dim(allplots)[1]){ #
+arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code
+= 0, angle = 90, lwd=3,col= alpha("gray",0.1)) # } # abline(h=trt.b,
+lwd=2, col="red") #` \# Now for DF standtypes \# \`\`\`{r simdatdbhdf,
+include = TRUE, echo = TRUE} \# \#4. set expected effect sizes for
+simulating data \# \#fit model for data of choice (i.e., one stand type
+\# dat=xdf \# mod\<-lmer(dbh.mn\~ AGE\_BH\_2006+(1|BLOCK) , data=dat) \#
+\# Bage\<-fixef(mod)\[2\] \# int\<-fixef(mod)\[1\] \# dbh.b =
+1.1\#effect of dbh \# age.b = Bage\#age effect (older stands have higher
+dbh? use coef from density model above) \# trt.b = 1 \#trt is amount
+removed (0,3 x predens) \# sigma.bl
+=attributes(VarCorr(mod)\(BLOCK)\)stddev\#estimated block-level sigma
+from 2006 data \# sigma = .1\# \# b0 = int\# from model above \# \#
+\#use the effect sizes and predictors plus error to generate the y
+variable \# \#set up data: \# x\<-subset(dat, select=c(BLOCK,dbh.mn,
+AGE\_BH\_2006, trt,stand.code))\#AGE\_BH\_2006 is related to AGE but is
+numeric, with some NAS \# colnames(x)\[1\]\<-c(“block”)  
+\# \#remove NAs \# \#x\<-x\[-which(is.na(x$AGE\_BH\_2006)),\] \# \#
+block = x\(block # nblock = length(unique(x\)block)) \# \# nplot =
+tapply(x\(dbh.mn,list(x\)block), length) \# \# blockeff = c(rep(rnorm(1,
+0, sigma.bl), times = nplot\[1\]), \# rep(rnorm(1, 0, sigma.bl), times =
+nplot\[2\]), \# rep(rnorm(1, 0, sigma.bl), times = nplot\[3\])) \#
+ploteff = rnorm(dim(x), 0, sigma) \# \#
+x\(trt2<-x\)trt*x\(dbh.mn # # ypred = b0 + dbh.b*x\)dbh.mn +
+age.b*x\(AGE_BH_2006+ trt.b*x\)trt2+ blockeff + ploteff \# \# lmer(ypred
+\~ dbh.mn+ AGE\_BH\_2006 + trt2+ (1|block), data=x) \# \# \# \#now lets
+write a for loop that uses different sample sizes to figure out how many
+plots are needed to correctly recover the effects \#
+fulldat\<-cbind(ypred,x) \# nplots\<-rep(c(5,10,15,20,27), times=10) \#
+allplots\<-c() \# for(i in 1:length(nplots)){ \#
+subsdattrt\<-sample\_n(fulldat\[fulldat$trt==0.3,\], nplots\[i\]) \#
+subsdatcont\<-sample\_n(fulldat\[fulldat$trt==0,\], nplots\[i\]) \#
+subsdat\<-rbind(subsdattrt,subsdatcont) \# fit\<-lmer(ypred \~ dbh.mn +
+AGE\_BH\_2006 + trt2+ (1|block),data=subsdat) \# cis\<-confint(fit) \#
+fit.sum\<-c(nplots\[i\],fixef(fit),cis\[3,\],cis\[4,\],cis\[5,\],cis\[6,\])
+\# allplots\<-rbind(allplots,fit.sum) \# } \#
+allplots\<-as.data.frame(allplots) \#
+colnames(allplots)\<-c(“n”,“int”,“dbh.b”,“age.b”,“trt.b”,“int.lc”,“int.uc”,“dbh.b.lc”,“dbh.b.uc”,“age.b.lc”,“age.b.uc”,“trt.b.lc”,“trt.b.uc”)
+\# \# par(mfrow=c(1,3)) \#
+plot(allplots\(n,allplots\)dbh.b,main=“dbh”,ylim=
+range(allplots\(dbh.b)) # for(i in 1:dim(allplots)[1]){ # arrows(allplots\)n\[i\],allplots\(dbh.b.lc[i],allplots\)n\[i\],allplots\(dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1)) # } # abline(h=dbh.b, lwd=2, col="red") # plot(allplots\)n,allplots\(age.b,main="age",ylim=range(allplots\)age.b))
+\# for(i in 1:dim(allplots)\[1\]){ \#
+arrows(allplots\(n[i],allplots\)age.b.lc\[i\],allplots\(n[i],allplots\)age.b.uc\[i\],length=0.1,code
+= 0, angle = 90, lwd=3,col= alpha(“gray”,0.1)) \# } \# abline(h=age.b,
+lwd=2, col=“red”) \#
+plot(allplots\(n,allplots\)trt.b,main=“trt”,ylim=range(allplots\(trt.b)) # for(i in 1:dim(allplots)[1]){ # arrows(allplots\)n\[i\],allplots\(trt.b.lc[i],allplots\)n\[i\],allplots$trt.b.uc\[i\],length=0.1,code
+= 0, angle = 90, lwd=3,col= alpha(“gray”,0.1)) \# } \# abline(h=trt.b,
+lwd=2, col=“red”) \# \#
