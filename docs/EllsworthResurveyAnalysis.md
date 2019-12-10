@@ -323,18 +323,25 @@ ypred = b0 + dens.b*x$predens + age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + pl
 lmer(ypred ~ predens+ AGE_BH_2006 + trt2+ (1|block), data=x)
 ```
 
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
     ## Linear mixed model fit by REML ['lmerMod']
     ## Formula: ypred ~ predens + AGE_BH_2006 + trt2 + (1 | block)
     ##    Data: x
-    ## REML criterion at convergence: -385.2031
+    ## REML criterion at convergence: -560.2599
     ## Random effects:
     ##  Groups   Name        Std.Dev.
-    ##  block    (Intercept) 5.55777 
-    ##  Residual             0.04315 
+    ##  block    (Intercept) 4.56092 
+    ##  Residual             0.02184 
     ## Number of obs: 134, groups:  block, 3
     ## Fixed Effects:
     ## (Intercept)      predens  AGE_BH_2006         trt2  
-    ##     38.3356       0.9999       0.3014      -0.9996
+    ##     42.7653       0.9999       0.3014      -0.9998  
+    ## convergence code 0; 2 optimizer warnings; 0 lme4 warnings
 
 ``` r
 #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
@@ -353,14 +360,6 @@ for(i in 1:length(nplots)){
 ```
 
     ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -380,46 +379,8 @@ for(i in 1:length(nplots)){
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -448,13 +409,7 @@ for(i in 1:length(nplots)){
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
+    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -464,15 +419,6 @@ for(i in 1:length(nplots)){
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -496,6 +442,15 @@ for(i in 1:length(nplots)){
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -507,23 +462,6 @@ for(i in 1:length(nplots)){
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -549,6 +487,45 @@ for(i in 1:length(nplots)){
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -592,6 +569,39 @@ for(i in 1:length(nplots)){
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
     ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -612,44 +622,6 @@ for(i in 1:length(nplots)){
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -742,6 +714,70 @@ for(i in 1:length(nplots)){
 ```
 
     ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
@@ -755,7 +791,25 @@ for(i in 1:length(nplots)){
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
@@ -763,6 +817,33 @@ for(i in 1:length(nplots)){
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
     ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
@@ -799,11 +880,6 @@ for(i in 1:length(nplots)){
 
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
 
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## unable to evaluate scaled gradient
@@ -811,82 +887,6 @@ for(i in 1:length(nplots)){
     ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
     ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
 
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## unable to evaluate scaled gradient
-    
-    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
-    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
-
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
-    ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
     ## Computing profile confidence intervals ...
 
@@ -913,3 +913,571 @@ abline(h=trt.b, lwd=2, col="red")
 ```
 
 ![](EllsworthResurveyAnalysis_files/figure-gfm/simdatdf-1.png)<!-- -->
+
+2.  RESPONSE VARIABLE = DBH First, for WH standtypes
+
+<!-- end list -->
+
+``` r
+ #. set expected effect sizes for simulating data
+ #fit model for data of choice (i.e., one stand type
+ dat=xwh
+ mod<-lmer(dbh.mn~ AGE_BH_2006+(1|BLOCK) , data=dat)
+# 
+ Bage<-fixef(mod)[2]
+ int<-fixef(mod)[1]
+ dbh.b = 1.1#effect of dbh
+ age.b = Bage#age effect (older stands have higher dbh? use coef from density model above)
+ trt.b = 1 #trt is amount removed (0,3 x predens)
+ sigma.bl =attributes(VarCorr(mod)$BLOCK)$stddev#estimated block-level sigma from 2006 data 
+ sigma = .1#
+ b0 = int# from model above
+ 
+ #use the effect sizes and predictors plus error to generate the y variable
+ #set up data:
+ x<-subset(dat, select=c(BLOCK,dbh.mn, AGE_BH_2006, trt,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
+ colnames(x)[1]<-c("block")         
+ #remove NAs
+
+ block = x$block
+ nblock = length(unique(x$block))
+ 
+ nplot = tapply(x$dbh.mn,list(x$block), length)
+ 
+ blockeff = c(rep(rnorm(1, 0, sigma.bl), times = nplot[1]),
+              rep(rnorm(1, 0, sigma.bl), times = nplot[2]),
+              rep(rnorm(1, 0, sigma.bl), times = nplot[3]))
+ ploteff = rnorm(dim(x), 0, sigma)
+ 
+ x$trt2<-x$trt*x$dbh.mn
+ 
+ ypred = b0 + dbh.b*x$dbh.mn + age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + ploteff
+ 
+ #lmer(ypred ~ dbh.mn+ AGE_BH_2006 + trt2+ (1|block), data=x)
+ 
+ #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
+ fulldat<-cbind(ypred,x)
+ nplots<-rep(c(5,10,15,20,30,40,50), times=10)
+ allplots<-c()
+ for(i in 1:length(nplots)){
+   subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,], nplots[i])
+   subsdatcont<-sample_n(fulldat[fulldat$trt==0,], nplots[i])
+   subsdat<-rbind(subsdattrt,subsdatcont)
+   fit<-lmer(ypred ~ dbh.mn + AGE_BH_2006  + trt2+ (1|block),data=subsdat)
+   cis<-confint(fit)
+   fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,])
+   allplots<-rbind(allplots,fit.sum)
+ }
+```
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+``` r
+ allplots<-as.data.frame(allplots)
+ colnames(allplots)<-c("n","int","dbh.b","age.b","trt.b","int.lc","int.uc","dbh.b.lc","dbh.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+ 
+ par(mfrow=c(1,3))
+ plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
+ }
+ abline(h=dbh.b, lwd=2, col="red")
+ plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+ }
+  abline(h=age.b, lwd=2, col="red")
+ plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+ }
+ abline(h=trt.b, lwd=2, col="red")
+```
+
+![](EllsworthResurveyAnalysis_files/figure-gfm/simdatdbh-1.png)<!-- -->
+
+\# Now for DF standtypes
+
+``` r
+# set expected effect sizes for simulating data
+ #fit model for data of choice (i.e., one stand type
+ dat=xdf
+ mod<-lmer(dbh.mn~ AGE_BH_2006+(1|BLOCK) , data=dat)
+ 
+ Bage<-fixef(mod)[2]
+ int<-fixef(mod)[1]
+ dbh.b = 1.1#effect of dbh
+ age.b = Bage#age effect (older stands have higher dbh? use coef from density model above)
+ trt.b = 1 #trt is amount removed (0,3 x predens)
+ sigma.bl =attributes(VarCorr(mod)$BLOCK)$stddev#estimated block-level sigma from 2006 data 
+ sigma = .1#
+ b0 = int# from model above
+ 
+ #use the effect sizes and predictors plus error to generate the y variable
+ #set up data:
+ x<-subset(dat, select=c(BLOCK,dbh.mn, AGE_BH_2006, trt,stand.code))#AGE_BH_2006 is related to AGE but is numeric, with some NAS
+ colnames(x)[1]<-c("block")         
+ #remove NAs
+ #x<-x[-which(is.na(x$AGE_BH_2006)),]
+ 
+ block = x$block
+ nblock = length(unique(x$block))
+ 
+ nplot = tapply(x$dbh.mn,list(x$block), length)
+ 
+ blockeff = c(rep(rnorm(1, 0, sigma.bl), times = nplot[1]),
+              rep(rnorm(1, 0, sigma.bl), times = nplot[2]),
+              rep(rnorm(1, 0, sigma.bl), times = nplot[3]))
+ ploteff = rnorm(dim(x), 0, sigma)
+ 
+ x$trt2<-x$trt*x$dbh.mn
+ 
+ ypred = b0 + dbh.b*x$dbh.mn + age.b*x$AGE_BH_2006+ trt.b*x$trt2+ blockeff + ploteff
+ 
+# lmer(ypred ~ dbh.mn+ AGE_BH_2006 + trt2+ (1|block), data=x)
+ 
+ 
+ #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
+ fulldat<-cbind(ypred,x)
+ nplots<-rep(c(5,10,15,20,27), times=10)
+ allplots<-c()
+ for(i in 1:length(nplots)){
+   subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,], nplots[i])
+   subsdatcont<-sample_n(fulldat[fulldat$trt==0,], nplots[i])
+   subsdat<-rbind(subsdattrt,subsdatcont)
+   fit<-lmer(ypred ~ dbh.mn + AGE_BH_2006  + trt2+ (1|block),data=subsdat)
+   cis<-confint(fit)
+   fit.sum<-c(nplots[i],fixef(fit),cis[3,],cis[4,],cis[5,],cis[6,])
+   allplots<-rbind(allplots,fit.sum)
+ }
+```
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+    ## Computing profile confidence intervals ...
+
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## unable to evaluate scaled gradient
+    
+    ## Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+    ## Model failed to converge: degenerate Hessian with 1 negative eigenvalues
+
+    ## Computing profile confidence intervals ...
+
+``` r
+ allplots<-as.data.frame(allplots)
+ colnames(allplots)<-c("n","int","dbh.b","age.b","trt.b","int.lc","int.uc","dbh.b.lc","dbh.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+
+ par(mfrow=c(1,3))
+ plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
+ }
+ abline(h=dbh.b, lwd=2, col="red")
+ plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+ }
+  abline(h=age.b, lwd=2, col="red")
+ plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b))
+ for(i in 1:dim(allplots)[1]){
+   arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
+ }
+abline(h=trt.b, lwd=2, col="red")
+```
+
+![](EllsworthResurveyAnalysis_files/figure-gfm/simdatdbhdf-1.png)<!-- -->
