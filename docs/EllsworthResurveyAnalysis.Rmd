@@ -5,9 +5,10 @@ output: github_document
 
 ## Goals and Approach
 
-The primary goal of these preliminary analyses is to figure out how many plots should be resurveyed at Ellsowrth in summer 2020. To do this, we used the pre-treatment survey data from 2006/2007 to quantify variance in density, height, and DBH of plots by  block and stand type. 
+The primary goal of these preliminary analyses is to figure out how many plots should be resurveyed at Ellsowrth in summer 2020. To do this, we used the pre-treatment survey data from 2006/2007 to quantify variance in density, height, and DBH of plots by  block and stand type (for DF and WG stand types only; RA plots were not included due to low sample size). We then simulated data, assuming treatments effects proportional to stems removed (30%) for all response variables (density, height, and DBH), with the variance equivalant to the 2006/2007 data. Thus, this approach makes some assumptions that may not be accurate (variance remains constant in time, regardless of the treatment, and the treatment effects are proportional to the proportion of stems removed). However, the goal is to give us a sense of the approximate number of plots necessary to estimate a treatment effect, given observed variance at the plot and stand level.
 
-## Summary 
+## Summary of Conclusions
+After looking at the simulated data, we concluded that we should collect data in ~25-30 plots per treatment within the WH stand types and ~15-20 plots per treatment within the DF stand types.
 
 ## Data Files
 We used the following datafiles, which can be found in the Ellsworth GitHub repo (https://github.com/AileneKane/ellsworth) as well as in the "Ellsworth Science and Monitoring" shared folder on Box.
@@ -123,9 +124,9 @@ There is a positive effect of age on crown,  after accounting for variation in d
 To figure out how many plots need to  be resampled to capture the treatment effects, amidst all the variation among blocks and standtypes, we simulated a dataset of resampled data. To do this, we set expected effect sizes of treatment
 
 1. RESPONSE VARIABLE = DENSITY
-First, for WH stand types. In the plots, the x axis is the number of plots per treatment
+First, for WH stand types. In the plots, the x axis is the number of plots per treatment.
 
-```{r simdat, include = TRUE, echo = TRUE}
+```{r simdat,  include = FALSE}
 #4. set expected effect sizes for simulating data
 #fit model for data of choice (i.e., one stand type
 dat<-xwh
@@ -180,7 +181,12 @@ for(i in 1:length(nplots)){
 }
 allplots<-as.data.frame(allplots)
 colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+```
 
+
+```{r simdatplot, include = TRUE, echo = TRUE}
+#4. set expected effect sizes for simulating data
+#fit model for
 par(mfrow=c(1,3))
 plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
 for(i in 1:dim(allplots)[1]){
@@ -200,7 +206,7 @@ abline(h=trt.b, lwd=2, col="red")
 ```
 Next, for DF plots
 
-```{r simdatdf, include = TRUE, echo = TRUE}
+```{r simdatdf,  include = FALSE}
 #4. set expected effect sizes for simulating data
 #fit model for data of choice (i.e., one stand type
 dat<-xdf
@@ -255,6 +261,9 @@ for(i in 1:length(nplots)){
 }
 allplots<-as.data.frame(allplots)
 colnames(allplots)<-c("n","int","predens.b","age.b","trt.b","int.lc","int.uc","predens.b.lc","predens.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+```
+
+```{r simdatdfplots, include = TRUE, echo = TRUE}
 
 par(mfrow=c(1,3))
 plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
@@ -277,7 +286,7 @@ abline(h=trt.b, lwd=2, col="red")
 2. RESPONSE VARIABLE = DBH
  First, for WH standtypes
  
-````{r simdatdbh, include = TRUE, echo = TRUE}
+````{r simdatdbh, include = FALSE}
  #. set expected effect sizes for simulating data
  #fit model for data of choice (i.e., one stand type
  dat=xwh
@@ -330,7 +339,10 @@ abline(h=trt.b, lwd=2, col="red")
  allplots<-as.data.frame(allplots)
  colnames(allplots)<-c("n","int","dbh.b","age.b","trt.b","int.lc","int.uc","dbh.b.lc","dbh.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
  
- par(mfrow=c(1,3))
+```
+
+````{r simdatdbhplot, include = TRUE, echo = TRUE}
+par(mfrow=c(1,3))
  plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
  for(i in 1:dim(allplots)[1]){
    arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
@@ -352,7 +364,7 @@ abline(h=trt.b, lwd=2, col="red")
  
  # Now for DF standtypes
 
-```{r simdatdbhdf, include = TRUE, echo = TRUE}
+```{r simdatdbhdf, include = FALSE}
 # set expected effect sizes for simulating data
  #fit model for data of choice (i.e., one stand type
  dat=xdf
@@ -393,7 +405,7 @@ abline(h=trt.b, lwd=2, col="red")
  
  #now lets write a for loop that uses different sample sizes to figure out how many plots are needed to correctly recover the effects
  fulldat<-cbind(ypred,x)
- nplots<-rep(c(5,10,15,20,27), times=10)
+ nplots<-rep(c(5,10,15,20), times=10)
  allplots<-c()
  for(i in 1:length(nplots)){
    subsdattrt<-sample_n(fulldat[fulldat$trt==0.3,], nplots[i])
@@ -406,6 +418,9 @@ abline(h=trt.b, lwd=2, col="red")
  }
  allplots<-as.data.frame(allplots)
  colnames(allplots)<-c("n","int","dbh.b","age.b","trt.b","int.lc","int.uc","dbh.b.lc","dbh.b.uc","age.b.lc","age.b.uc","trt.b.lc","trt.b.uc")
+```
+
+```{r simdatdbhdfplot, include = TRUE, echo = TRUE}
 
  par(mfrow=c(1,3))
  plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
