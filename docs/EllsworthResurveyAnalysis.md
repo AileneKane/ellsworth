@@ -292,26 +292,27 @@ treatment effects, amidst all the variation among blocks and standtypes,
 we simulated a dataset of resampled data. To do this, we set expected
 effect sizes of treatment
 
-1.  RESPONSE VARIABLE = DENSITY First, for WH stand types. In the plots,
-    the x axis is the number of plots per treatment.
+# 1\. RESPONSE VARIABLE = DENSITY
 
-<!-- end list -->
+In all plots, the x axis is the number of plots per treatment.
+
+WH stand types
 
 ``` r
 #4. set expected effect sizes for simulating data
 #fit model for
 par(mfrow=c(1,3))
-plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
+plot(allplots$n,allplots$predens.b,main="density (WH plots)",ylim= range(allplots$predens.b), xlab = "# plots per treatment")
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
 }
 abline(h=dens.b, lwd=2, col="red")
-plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
+plot(allplots$n,allplots$age.b,main="age (WH plots)",ylim=range(allplots$age.b), xlab = "# plots per treatment")
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
  abline(h=age.b, lwd=2, col="red")
-plot(allplots$n,allplots$trt.b,main="trt",ylim=range(allplots$trt.b))
+plot(allplots$n,allplots$trt.b,main="trt (WH plots)",ylim=range(allplots$trt.b), xlab = "# plots per treatment")
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$trt.b.lc[i],allplots$n[i],allplots$trt.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
@@ -319,16 +320,17 @@ abline(h=trt.b, lwd=2, col="red")
 ```
 
 ![](EllsworthResurveyAnalysis_files/figure-gfm/simdatplot-1.png)<!-- -->
-Next, for DF plots
+
+DF stand type
 
 ``` r
 par(mfrow=c(1,3))
-plot(allplots$n,allplots$predens.b,main="density",ylim= range(allplots$predens.b))
+plot(allplots$n,allplots$predens.b,main="density (DF plots)",ylim= range(allplots$predens.b), xlab = "# plots per treatment")
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$predens.b.lc[i],allplots$n[i],allplots$predens.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
 }
 abline(h=dens.b, lwd=2, col="red")
-plot(allplots$n,allplots$age.b,main="age",ylim=range(allplots$age.b))
+plot(allplots$n,allplots$age.b,main="age (DF plots)",ylim=range(allplots$age.b), xlab = "# plots per treatment")
 for(i in 1:dim(allplots)[1]){
   arrows(allplots$n[i],allplots$age.b.lc[i],allplots$n[i],allplots$age.b.uc[i],length=0.1,code = 0, angle = 90, lwd=3,col= alpha("gray",0.1))
 }
@@ -342,13 +344,13 @@ abline(h=trt.b, lwd=2, col="red")
 
 ![](EllsworthResurveyAnalysis_files/figure-gfm/simdatdfplots-1.png)<!-- -->
 
-2.  RESPONSE VARIABLE = DBH First, for WH standtypes
+# 2\. RESPONSE VARIABLE = DBH
 
-<!-- end list -->
+WH standtypes
 
 ``` r
 par(mfrow=c(1,3))
- plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
+ plot(allplots$n,allplots$dbh.b,main="dbh (WH plots)",ylim= range(allplots$dbh.b), xlab = "# plots per treatment")
  for(i in 1:dim(allplots)[1]){
    arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
  }
@@ -371,7 +373,7 @@ par(mfrow=c(1,3))
 
 ``` r
  par(mfrow=c(1,3))
- plot(allplots$n,allplots$dbh.b,main="dbh",ylim= range(allplots$dbh.b))
+ plot(allplots$n,allplots$dbh.b,main="dbh (DF plots)",ylim= range(allplots$dbh.b), xlab = "# plots per treatment")
  for(i in 1:dim(allplots)[1]){
    arrows(allplots$n[i],allplots$dbh.b.lc[i],allplots$n[i],allplots$dbh.b.uc[i],length=0.1,code = 0, angle=90, lwd=3,col= alpha("gray",0.1))
  }
