@@ -148,3 +148,8 @@ abline(h=age.b, lwd=2, col="red")
 dev.off()
 
 
+
+#to code this for new data
+lmer(BA~BASIN + AGE_BH_2006+ TRT+ AGE_BH:TRT + (1|SITE_ID), data=plotd2)
+
+
